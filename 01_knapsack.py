@@ -1,10 +1,16 @@
-import math
+from numpy.random import choice
 import sys
 import random
+from functools import cmp_to_key
 
 from deap import creator, base, tools
 
-verbose = True
+verbose = False
+mu = 5
+p_cross = 1
+p_mutate = 0.1
+n_elite = 2
+global candidates, capacity
 
 
 def parse_data_file(fname):
@@ -27,61 +33,104 @@ def parse_data_file(fname):
     return candidates, capacity
 
 
+def generate_population(length, seed=None):
+    if seed is not None:
+        random.seed(seed)
+
+    population = []
+    for i in range(mu):
+        ind = []
+        for j in range(length):
+            ind.append(random.choice([True, False]))
+        population.append(ind)
+
+    return population
+
+
+def evaluate(individual):
+    alpha = 100
+    value = 0
+    weight = 0
+    for n, item in enumerate(individual):
+        if item:
+            tuple = candidates[n]
+            value += tuple[0]
+            weight += tuple[1]
+
+    penalty = alpha * max(0, weight - capacity)
+    return value - penalty
+
+
+def sort_population(i1, i2):
+    return evaluate(i2) - evaluate(i1)
+
+
+def roulette_probabilities(population):
+    values = [evaluate(i) for i in population]
+    print(values)
+    vmin, vmax = min(values), max(values)
+    norm = [(v - vmin) / (vmax - vmin) for v in values]
+    return [x / sum(norm) for x in norm]
+
+
+def one_point_crossover(i1, i2):
+    ind_len = len(i1)
+    idx = random.choice(range(1, ind_len-1))
+    c1 = i1[0:idx] + i2[idx:ind_len]
+    c2 = i2[0:idx] + i1[idx:ind_len]
+    return c1, c2
+
+
+def mutate(individual):
+    idx = random.choice(range(len(individual)))
+    individual[idx] = not individual[idx]
+    return individual
+
+
 def main():
-    for i in range(1, len(sys.argv)):  # start from 1, skip 0th argument - filename
-        candidates, capacity = parse_data_file(sys.argv[i])
+    for f in range(1, len(sys.argv)):  # start from 1, skip 0th argument - filename
+        global candidates, capacity
+        candidates, capacity = parse_data_file(sys.argv[f])
         n = len(candidates)
         if verbose:
             print(candidates)
 
-        # Below inspired from https://github.com/DEAP/deap/blob/b8513fc16fa05b2fe6b740488114a7f0c5a1dd06/examples/ga/knapsack.py
+        # Randomly initialise a population of individuals (bit string, each bit has
+        # 50% probability to be 1, and 50% to be 0)
+        population = generate_population(n)
 
-        # Set up the creator factory with the Fitness and Individual we want
-        # Fitness: tuples are value (maximise +), weight (minimise -)
-        creator.create("Fitness", base.Fitness, weights=(1.0, -1.0))
-        creator.create("Individual", set, fitness=creator.Fitness)
+        solution = None
+        for epoch in range(10):
+            # Fitness evaluation of each individual
+            population = sorted(population, key=cmp_to_key(sort_population))
+            print(population)
 
-        # Set up toolbox to generate population
-        toolbox = base.Toolbox()
-        # Generate item randomly
-        toolbox.register("attr_item", random.randrange, len(candidates))
-        # Generate individual
-        toolbox.register("individual", tools.initRepeat, creator.Individual, toolbox.attr_item, IND_INIT_SIZE)
-        # Generate population of individuals
-        toolbox.register("population", tools.initRepeat, list, toolbox.individual)
+            # Update the best feasible solution
+            solution = population[0]
+            # Do elitism (copy top individuals)
+            children = population[0:n_elite]
+            # Generate probabilities for roulette wheel selection
+            roulette = roulette_probabilities(population)
+            print(roulette)
+            # Repeat until the new population is full:
+            while len(children) < mu:
+                parents = choice(range(len(roulette)), p=roulette, size=2, replace=False)
+                child1, child2 = population[parents[0]], population[parents[1]]
+                print("Selected:", child1, child2)
+                if random.random() < p_cross:
+                    child1, child2 = one_point_crossover(child1, child2)
+                    print("CO:", child1, child2)
+                if random.random() < p_mutate:
+                    child1 = mutate(child1)
+                    print("C1 mutated:", child1)
+                if random.random() < p_mutate:
+                    child2 = mutate(child2)
+                    print("C2 mutated:", child2)
+                children += [child1, child2]
+            population = children
 
-        def evaluate(candidate):
-            value = 0.0
-            weight = 0.0
-            for item in candidate:
-                value += candidates[item][0]
-                weight += candidates[item][0]
-
-            if weight > capacity:  # override evaluation if overweight
-                value = 0.0
-                weight = math.inf
-
-            return value, weight
-
-        def crossover(c1, c2):
-            temp = set(c1)
-            c1 &= c2
-            c2 ^= temp
-            return c1, c2
-
-        def mutate(candidate):
-            if random.random() < 0.5:
-                if len(candidate) > 0:  # If we can remove an item in set, remove
-                    candidate.remove(random.choice(sorted(tuple(candidates))))
-            else:
-                candidate.add(random.randrange(n))
-            return candidate,
-
-        toolbox.register("evaluate", evaluate)
-        toolbox.register("mate", crossover)
-        toolbox.register("mutate", mutate)
-        toolbox.register("select", tools.selNSGA2)
-
+        print(solution)
+        print(evaluate(solution))
 
 
 if __name__ == '__main__':
