@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from numpy.random import choice
 import sys
 import random
@@ -47,7 +48,7 @@ def generate_population(length):
 
 
 def evaluate(individual):
-    alpha = 10
+    alpha = 2
     value = 0
     weight = 0
     for n, item in enumerate(individual):
@@ -116,14 +117,25 @@ def main(seed=None):
         population = generate_population(n)
 
         solution = None
+        convergence = []
         for epoch in range(epochs):
             # Fitness evaluation of each individual
             population = sorted(population, key=cmp_to_key(sort_population))
             feasible_population = [ind for ind in population if is_feasible(ind)]
+
             # Update the best feasible solution
-            solution = feasible_population[0] if len(feasible_population) > 0 else population[0]
-            # Do elitism (copy top individuals)
+            candidate_solution = feasible_population[0] if len(feasible_population) > 0 else population[0]
+            # Only if it's better than the current solution
+            if solution is None or evaluate(candidate_solution) > evaluate(solution):
+                solution = candidate_solution
+
+            # Do elitism (copy top individuals to the new generation)
             children = feasible_population[0:n_elite] if len(feasible_population) >= n_elite else population[0:n_elite]
+
+            # Sample top 5 for average fitness
+            average_fitness = np.mean([evaluate(ind) for ind in population[0:5]])
+            convergence.append(average_fitness)
+
             # Generate probabilities for roulette wheel selection
             roulette = roulette_probabilities(population)
 
@@ -142,6 +154,8 @@ def main(seed=None):
 
         print("Solution:", solution)
         print("Value:", evaluate(solution))
+        filename = sys.argv[f].split("/")[-1]
+        pd.DataFrame(convergence).to_csv("out/part1/"+filename+"_"+str(seed)+".csv")
 
 
 if __name__ == '__main__':
