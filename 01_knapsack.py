@@ -1,15 +1,17 @@
+import numpy as np
 from numpy.random import choice
 import sys
 import random
 from functools import cmp_to_key
 
-from deap import creator, base, tools
+# HYPERPARAMETERS
+mu = 100
+p_cross = 1
+p_mutate = 0.25
+n_elite = 2
+epochs = 500
 
 verbose = False
-mu = 5
-p_cross = 1
-p_mutate = 0.1
-n_elite = 2
 global candidates, capacity
 
 
@@ -33,10 +35,7 @@ def parse_data_file(fname):
     return candidates, capacity
 
 
-def generate_population(length, seed=None):
-    if seed is not None:
-        random.seed(seed)
-
+def generate_population(length):
     population = []
     for i in range(mu):
         ind = []
@@ -48,7 +47,7 @@ def generate_population(length, seed=None):
 
 
 def evaluate(individual):
-    alpha = 100
+    alpha = 10
     value = 0
     weight = 0
     for n, item in enumerate(individual):
@@ -61,14 +60,31 @@ def evaluate(individual):
     return value - penalty
 
 
+def evaluate_value(individual):
+    value = 0
+    for n, item in enumerate(individual):
+        if item:
+            tuple = candidates[n]
+            value += tuple[0]
+    return value
+
+
+def is_feasible(individual):
+    weight = 0
+    for n, item in enumerate(individual):
+        if item:
+            tuple = candidates[n]
+            weight += tuple[1]
+    return weight <= capacity
+
+
 def sort_population(i1, i2):
     return evaluate(i2) - evaluate(i1)
 
 
 def roulette_probabilities(population):
     values = [evaluate(i) for i in population]
-    print(values)
-    vmin, vmax = min(values), max(values)
+    vmin, vmax = min(values)-1, max(values)  # -1 to allow the minimum value to occupy a non-zero slice
     norm = [(v - vmin) / (vmax - vmin) for v in values]
     return [x / sum(norm) for x in norm]
 
@@ -87,51 +103,48 @@ def mutate(individual):
     return individual
 
 
-def main():
+def main(seed=None):
+    random.seed(seed)
+    np.random.seed(seed)
     for f in range(1, len(sys.argv)):  # start from 1, skip 0th argument - filename
         global candidates, capacity
         candidates, capacity = parse_data_file(sys.argv[f])
         n = len(candidates)
-        if verbose:
-            print(candidates)
 
         # Randomly initialise a population of individuals (bit string, each bit has
         # 50% probability to be 1, and 50% to be 0)
         population = generate_population(n)
 
         solution = None
-        for epoch in range(10):
+        for epoch in range(epochs):
             # Fitness evaluation of each individual
             population = sorted(population, key=cmp_to_key(sort_population))
-            print(population)
-
+            feasible_population = [ind for ind in population if is_feasible(ind)]
             # Update the best feasible solution
-            solution = population[0]
+            solution = feasible_population[0] if len(feasible_population) > 0 else population[0]
             # Do elitism (copy top individuals)
-            children = population[0:n_elite]
+            children = feasible_population[0:n_elite] if len(feasible_population) >= n_elite else population[0:n_elite]
             # Generate probabilities for roulette wheel selection
             roulette = roulette_probabilities(population)
-            print(roulette)
+
             # Repeat until the new population is full:
             while len(children) < mu:
                 parents = choice(range(len(roulette)), p=roulette, size=2, replace=False)
                 child1, child2 = population[parents[0]], population[parents[1]]
-                print("Selected:", child1, child2)
                 if random.random() < p_cross:
                     child1, child2 = one_point_crossover(child1, child2)
-                    print("CO:", child1, child2)
                 if random.random() < p_mutate:
                     child1 = mutate(child1)
-                    print("C1 mutated:", child1)
                 if random.random() < p_mutate:
                     child2 = mutate(child2)
-                    print("C2 mutated:", child2)
                 children += [child1, child2]
             population = children
 
-        print(solution)
-        print(evaluate(solution))
+        print("Solution:", solution)
+        print("Value:", evaluate(solution))
 
 
 if __name__ == '__main__':
-    main()
+    for i in range(5):
+        print("Seed =", i)
+        main(i)
