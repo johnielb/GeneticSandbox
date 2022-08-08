@@ -17,8 +17,7 @@ global candidates, capacity
 
 
 def parse_data_file(fname):
-    if verbose:
-        print("===", fname, "===")
+    print("===", fname, "===")
     file = open(fname)
     header = file.readline().split(" ")
     n = int(header[0])

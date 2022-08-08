@@ -45,4 +45,45 @@ All top 5 solutions in the run with seed=0 converged to the optimal solution 976
 ### 100_995
 ![img_2.png](out/part1/img_2.png)
 
-Early populations begin in the negative fitness territory as the randomly generated individuals massively overshoot in capacity. Around the 40th epoch, all seeds had top 5 solutions with positive fitness. By the 146th epoch, all top 5 solutions in the run with seed=4 converged to the optimal solution 1514. There is less variance than in the 2nd file, possibly due to a variety in item sizes in this 3rd file. 500 generations may not be enough for some seeds to converge to the optimal value, with two runs (seed 2, seed 3) failing to meet the optimal value. 
+Early populations begin in the negative fitness territory as the randomly generated individuals massively overshoot in capacity. Around the 40th epoch, all seeds had top 5 solutions with positive fitness. By the 146th epoch, all top 5 solutions in the run with seed=4 converged to the optimal solution 1514. There is less variance than in the 2nd file, possibly due to a variety in item sizes in this 3rd file. 500 generations may not be enough for some seeds to converge to the optimal value, with two runs (seed 2, seed 3) failing to meet the optimal value.
+
+
+# Part 2
+> Describe the details of your designed GA (including the overall outline, representation, fitness function, crossover and mutation, selection, and parameters). You should also show the results (mean and standard deviation of the performance and com- putational time), and make discussions and conclusions in your report.
+
+This genetic algorithm is largely the same as in Part 1, with parameters readjusted for the specific problem. We start with a randomly initialised population, with **50** individuals represented by a list of Booleans. This representation encodes what an individual actually is, a series of Boolean choices whether to include a feature in the set, rather than say a string of ASCII integers. This representation also enables the use of Boolean operations, such as negation during mutation. 
+
+Given this randomly initialised population, a generation process is repeated for **100** epochs, or when the score hasn't improved in 10 epochs. This is a smaller number than in Part 1 to reflect the smaller variability in this problem.
+* The first step sorts the population by fitness. Fitness is determined either by filter feature selection, where the mutual information criterion of each selected feature is summed together as the fitness value; or wrapper feature selection, where a classifier is trained on the selected features, using its accuracy as the fitness value. 
+* The next generation is populated with **2** of the most fit individuals, before generating the rest of the children. This is 2% of the next generation, which promotes further diversity in the 98% which will possess different material, as we cross over with new children 100% of the time.
+* Until **100** children in the population are generated, select two parents randomly, weighted by their fitness (i.e. roulette wheel selection). Crossover happens **100%** of the time, where a random index in the individual is picked as the crossover point where genetic material is swapped between the parents from that point onwards. Mutation happens **25%** of the time, which introduces novel genetic material by flipping a bit in the individual randomly. This rate is higher than suggested to help the GA converge on the optimal value quicker.
+
+
+## Results
+### wbcd
+| Seed | Wrapper time (s) | Filter time (s) | Wrapper accuracy (%) | Filter accuracy (%) |
+| --- | --- | --- | --- |  --- | 
+| 0 | 8 | 125 | 0.928 | 0.942 |
+| 1 | 8 | 153 | 0.931 | 0.942 |
+| 2 | 8 | 129 | 0.931 | 0.942 |
+| 3 | 8 | 167 | 0.935 | 0.942 |
+| 4 | 10 | 226 | 0.951 | 0.942 |
+| Mean | 8.4 | 160 | 0.935 | 0.942 |
+| SD | 0.8 | 36.4 | 0.008 | 0 |
+
+### sonar
+| Seed | Wrapper time (s) | Filter time (s) | Wrapper accuracy (%) | Filter accuracy (%) |
+| --- | --- | --- | --- |  --- | 
+| 0 | 4 | 118 | 0.635 | 0.692 |
+| 1 | 4 | 52 | 0.682 | 0.731 |
+| 2 | 4 | 131 | 0.726 | 0.706 |
+| 3 | 4 | 93 | 0.673 | 0.712 |
+| 4 | 12 | 131 | 0.678 | 0.702 |
+| Mean | 5.6 | 104.8 | 0.679 | 0.709 |
+| SD | 3.2 | 30 | 0.029 | 0.013 |
+
+The average computational time for wrapper FS was 8.4 seconds for wbcd, and 5.6 seconds for sonar. These averages are significantly smaller than the average computational time for filter FS, 160 seconds for wbcd, and 105 seconds for sonar. This result is surprising, as typically one expects wrapper FS to take longer than filter FS, where you need to create an entire model to evaluate a feature subset for the former, while the latter simply evaluates the feature subset mathematically. 
+
+This result may be explained by the simple model used for wrapper FS, a KNeighbours classifier, and may be significantly optimised by the package. On the other hand, filter FS used the mutual information score, which may have been computationally expensive due to the discretisation of all the continuous features. One factor not considered in these results is the number of epochs before stopping. Typically, wrapper FS stopped quicker, while filter FS could continue to make incremental gains. Perhaps a more aggressive stopping criteria, maybe one that considers the size of the gains, could be used to shorten filter FS' elapsed time.
+
+The average accuracy for wbcd was 93.5% for wrapper FS, and 94.2% for filter FS. For sonar, accuracy was 67.9% for wrapper FS, and 70.9% for filter FS. 
