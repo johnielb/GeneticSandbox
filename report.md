@@ -86,4 +86,7 @@ The average computational time for wrapper FS was 8.4 seconds for wbcd, and 5.6 
 
 This result may be explained by the simple model used for wrapper FS, a KNeighbours classifier, and may be significantly optimised by the package. On the other hand, filter FS used the mutual information score, which may have been computationally expensive due to the discretisation of all the continuous features. One factor not considered in these results is the number of epochs before stopping. Typically, wrapper FS stopped quicker, while filter FS could continue to make incremental gains. Perhaps a more aggressive stopping criteria, maybe one that considers the size of the gains, could be used to shorten filter FS' elapsed time.
 
-The average accuracy for wbcd was 93.5% for wrapper FS, and 94.2% for filter FS. For sonar, accuracy was 67.9% for wrapper FS, and 70.9% for filter FS. 
+The average accuracy for wbcd was 93.5% for wrapper FS, and 94.2% for filter FS. For sonar, accuracy was 67.9% for wrapper FS, and 70.9% for filter FS. Filter FS tended to have a marginally better accuracy for both datasets. This result is in line with what I expected, as wrapper FS has poorer generalisability to other classifier models (here, moving from KNeighbours to GaussianNB), while filter FS is more generalisable due to its direct relationship with the data rather than a model's output. Had we used a GaussianNB as the wrapper classifier, we might have seen a different result with a better accuracy more suited to the final GaussianNB model.
+
+# Part 4
+
