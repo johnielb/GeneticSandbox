@@ -1,5 +1,3 @@
 *.pdf
 *.rmd
-*.csv
-*.xlsx
-*.png
+/out/
