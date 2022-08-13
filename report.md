@@ -89,4 +89,26 @@ This result may be explained by the simple model used for wrapper FS, a KNeighbo
 The average accuracy for wbcd was 93.5% for wrapper FS, and 94.2% for filter FS. For sonar, accuracy was 67.9% for wrapper FS, and 70.9% for filter FS. Filter FS tended to have a marginally better accuracy for both datasets. This result is in line with what I expected, as wrapper FS has poorer generalisability to other classifier models (here, moving from KNeighbours to GaussianNB), while filter FS is more generalisable due to its direct relationship with the data rather than a model's output. Had we used a GaussianNB as the wrapper classifier, we might have seen a different result with a better accuracy more suited to the final GaussianNB model.
 
 # Part 4
+The terminal set used in this problem consisted of a random float, or a random bool (True or False). This set captures all the possible types in the regression problem. The function set in this problem added all the functions sufficient to capture the regression problem:
+- Add, subtract, and multiply
+- Divide with protection if a zero is used as the denominator.
+- Sine only. Cosine is just a phase-shifted sine so a problem with cosine (which this problem doesn't use) can be conveyed with sine.
+- Square. I initially tried a power function, but became too complex to handle when negative bases were used.
+- Greater than only, the comparator this problem uses. Less than is just the inverse swapping the two options.
+- If else, accepting a boolean condition, and two float options, returning either float.
 
+Programs are evaluated by finding the mean squared error between the true regression and the program output. The fitness cases used are in the range of [-5, 15). The graph below shows this range, which clearly captures the shape of the first piecewise function and the second piecewise function as it transforms from the asymptote to the sine. The cases step by 0.2, which is granular enough to capture the steep descent in [0, 1].
+
+![img.png](out/part4/img.png)
+
+The population size of each generation is 1000, with 5% = 50 of the most elite individuals being carried over. Each individual begins 2-6 nodes deep, with mutated subtrees being 2-6 nodes deep, limited to a maximum depth of 15. The probability of crossing over material at the reproductive stage is 75%, and 25% for mutation. 100 generations are evaluated.
+
+| Seed | Best fitness (MSE) |
+| --- | --- | 
+| 0 (red) | 0.4229 | 
+| 1 (orange) | 0.7657 | 
+| 2 (green) | 0.2744 | 
+| Mean | 0.4887 |
+| SD | 0.2047 |
+
+![img2.png](out/part4/img2.png)

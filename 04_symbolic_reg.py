@@ -17,8 +17,8 @@ from deap.algorithms import varOr
 
 verbose = True
 mu = 1000
-p_cross = 0.8
-p_mutate = 0.2
+p_cross = 0.75
+p_mutate = 0.25
 n_elite = int(mu*0.05)
 epochs = 100
 init_min_depth = 2
@@ -46,7 +46,10 @@ def createPrimitiveSet():
     primitives.addPrimitive(protectedDiv, [float, float], float)
 
     def square(x):
-        return x ** 2
+        try:
+            return x ** 2
+        except OverflowError:
+            return float("inf")
 
     # Adding a power operator gave it too much power it couldn't handle (negative operands => complex)
     primitives.addPrimitive(square, [float], float)
@@ -87,7 +90,7 @@ def createToolbox():
     toolbox.register("compile", gp.compile, pset=primitives)
 
     # Evaluate over x = {-10,-9,-8,...,8,9,10}
-    toolbox.register("evaluate", evaluate, points=[x / 5. for x in range(-25, 50)])
+    toolbox.register("evaluate", evaluate, points=[x / 5. for x in range(-25, 75)])
     # Tournament selection, 3 participants
     toolbox.register("select", tools.selTournament, tournsize=3)
     toolbox.register("mate", gp.cxOnePoint)
@@ -125,7 +128,7 @@ def main(seed=None):
 
     # Copied from DEAP source code (eaMuPlusLambda) with modifications indicated
     log = tools.Logbook()
-    log.header = ['gen', 'nevals'] + (mstats.fields if mstats else [])
+    log.header = ['gen', 'nevals'] + mstats.fields
 
     # Evaluate the individuals with an invalid fitness
     invalid_ind = [ind for ind in pop if not ind.fitness.valid]
@@ -153,8 +156,9 @@ def main(seed=None):
         # Update the hall of fame with the generated individuals
         hof.update(offspring)
 
-        # Select the next generation pop
-        pop[:] = tools.selBest(offspring, mu - n_elite) + tools.selBest(pop, n_elite)
+        # MODIFIED: Select the next generation population by adding the most elite individuals from the last population,
+        # then populate with offspring
+        pop[:] = tools.selBest(pop, n_elite) + tools.selBest(offspring, mu - n_elite)
 
         # Update the statistics with the new pop
         record = mstats.compile(pop)
@@ -162,10 +166,10 @@ def main(seed=None):
         print(log.stream)
 
     best_program = toolbox.compile(expr=hof.items[0])
-    print("=== Best f(x) over [-5, 10] + 0.2 ===")
+    print("=== Best f(x) over [-5, 15) + 0.2 ===")
     print("Fitness =", hof.keys[0])
     print(str(hof.items[0]))
-    pprint([best_program(x / 5.) for x in range(-25, 50)])
+    pprint([best_program(x / 5.) for x in range(-25, 75)])
 
     nodes, edges, labels = gp.graph(hof.items[0])
     for i in labels:
