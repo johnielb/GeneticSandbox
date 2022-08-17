@@ -18,9 +18,9 @@ from deap.algorithms import varOr
 verbose = True
 mu = 1000
 p_cross = 0.75
-p_mutate = 0.25
+p_mutate =  0.25
 n_elite = int(mu*0.05)
-epochs = 100
+epochs = 200
 init_min_depth = 2
 init_max_depth = 6
 max_depth = 15
@@ -121,7 +121,8 @@ def main(seed=None):
     hof = tools.HallOfFame(1)
 
     stats_fit = tools.Statistics(lambda ind: ind.fitness.values)
-    mstats = tools.MultiStatistics(fitness=stats_fit)
+    stats_size = tools.Statistics(len)
+    mstats = tools.MultiStatistics(fitness=stats_fit, size=stats_size)
     mstats.register("min", numpy.min)
     mstats.register("avg", numpy.mean)
     mstats.register("std", numpy.std)
@@ -168,6 +169,7 @@ def main(seed=None):
     best_program = toolbox.compile(expr=hof.items[0])
     print("=== Best f(x) over [-5, 15) + 0.2 ===")
     print("Fitness =", hof.keys[0])
+    print("Size =", len(hof.items[0]))
     print(str(hof.items[0]))
     pprint([best_program(x / 5.) for x in range(-25, 75)])
 

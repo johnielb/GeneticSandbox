@@ -88,6 +88,9 @@ This result may be explained by the simple model used for wrapper FS, a KNeighbo
 
 The average accuracy for wbcd was 93.5% for wrapper FS, and 94.2% for filter FS. For sonar, accuracy was 67.9% for wrapper FS, and 70.9% for filter FS. Filter FS tended to have a marginally better accuracy for both datasets. This result is in line with what I expected, as wrapper FS has poorer generalisability to other classifier models (here, moving from KNeighbours to GaussianNB), while filter FS is more generalisable due to its direct relationship with the data rather than a model's output. Had we used a GaussianNB as the wrapper classifier, we might have seen a different result with a better accuracy more suited to the final GaussianNB model.
 
+# Part 3
+
+
 # Part 4
 The terminal set used in this problem consisted of a random float, or a random bool (True or False). This set captures all the possible types in the regression problem. The function set in this problem added all the functions sufficient to capture the regression problem:
 - Add, subtract, and multiply
@@ -101,14 +104,22 @@ Programs are evaluated by finding the mean squared error between the true regres
 
 ![img.png](out/part4/img.png)
 
-The population size of each generation is 1000, with 5% = 50 of the most elite individuals being carried over. Each individual begins 2-6 nodes deep, with mutated subtrees being 2-6 nodes deep, limited to a maximum depth of 15. The probability of crossing over material at the reproductive stage is 75%, and 25% for mutation. 100 generations are evaluated.
+The population size of each generation is 1000, with 5% = 50 of the most elite individuals being carried over. Each individual begins 2-6 nodes deep, with mutated subtrees being 2-6 nodes deep, limited to a maximum depth of 15. The probability of crossing over material at the reproductive stage is 75%, and 25% for mutation. 200 generations are evaluated.
 
-| Seed | Best fitness (MSE) |
-| --- | --- | 
-| 0 (red) | 0.4229 | 
-| 1 (orange) | 0.7657 | 
-| 2 (green) | 0.2744 | 
-| Mean | 0.4887 |
-| SD | 0.2047 |
+| Seed | Best fitness (MSE, minimised) | Corresponding node length |
+| --- | --- |  --- | 
+| 0 (red) | 0.31498 | 429 |
+| 1 (orange) | 0.38310 | 463 | 
+| 2 (green) | 0.05091 | 407 | 
+| Mean | 0.24966 | 433 |
+| SD | 0.14326 | 23.036 |
 
 ![img2.png](out/part4/img2.png)
+
+With 200 generations, the individual with seed 2 (green line) fit the true blue regression the best, and had the lowest error as a result. The other two individuals fit the regression well, and had low errors absolutely, but not as well as the best one did in the region -3 < x < 2. All individuals seemed to use irregular piecewise linear functions to approximate the strange region -1 < x < 1, but the best individual actually fit the parabolic curve. 
+
+The best individual is examinable at a high level. The top level node is an if else decision. If the condition is true, the output is sin(x) when simplified (and under x < 91). This is the major component of the function at x>0, as 1/x becomes small as x increases. Otherwise, several terms are added together, as is the case for the true function at x <=0. 
+
+It is interesting that the best individual has the least nodes out of all of them. This result demonstrates that a more complex model does not lead to better results.
+
+# Part 5
