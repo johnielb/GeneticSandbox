@@ -5,15 +5,12 @@ import pandas as pd
 from numpy.random import choice
 import sys
 import random
-from functools import cmp_to_key
 
-# HYPERPARAMETERS
 from sklearn.feature_selection import mutual_info_classif
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.neural_network import MLPClassifier
-from sklearn.tree import DecisionTreeClassifier
 
+# HYPERPARAMETERS
 mu = 50
 p_cross = 1
 p_mutate = 0.25

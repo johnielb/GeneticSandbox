@@ -18,7 +18,7 @@ from deap.algorithms import varOr
 verbose = True
 mu = 1000
 p_cross = 0.75
-p_mutate =  0.25
+p_mutate = 0.25
 n_elite = int(mu*0.05)
 epochs = 200
 init_min_depth = 2
@@ -148,7 +148,7 @@ def main(seed=None):
         # Vary the population
         offspring = varOr(pop, toolbox, mu, p_cross, p_mutate)
 
-        # Evaluate the individuals with an invalid fitness
+        # Evaluate the individuals with an invalidated fitness
         invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
         fitnesses = toolbox.map(toolbox.evaluate, invalid_ind)
         for ind, fit in zip(invalid_ind, fitnesses):
