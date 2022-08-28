@@ -20,7 +20,7 @@ mu = 50
 p_cross = 0.75
 p_mutate = 0.2
 n_elite = 2
-epochs = 100
+epochs = 200
 
 global X, y
 verbose = True
@@ -97,24 +97,39 @@ def control_fitness():
     return evaluate(control_ind)
 
 
-def plot_pareto_front(hof, fname, seed):
-    weighted_fitness = numpy.array([ind.fitness.wvalues for ind in hof]) * -1
-    ref = (1.1, 1.1)
-    total_hv = hv.hypervolume(weighted_fitness, ref)
+def plot_pareto_front(hofs, fnames, seeds):
+    fig = plt.figure(figsize=(9, 6), constrained_layout=True)
+    fig.suptitle("Pareto fronts")
+    subfigs = fig.subfigures(nrows=len(fnames))
 
-    points = list(map(lambda x: x.values, hof.keys))
-    plt.plot(*zip(*points))
-    plt.scatter(*zip(*points))
-    plt.xlabel("Classification error")
-    plt.ylabel("Proportion of features selected")
-    plt.suptitle("Pareto front, data = " + fname + ", seed = " + str(seed))
-    plt.title("Hypervolume = " + str(total_hv))
-    plt.show()
+    for j, fname in enumerate(fnames):
+        subfig = subfigs[j]
+        axs = subfig.subplots(ncols=len(seeds), sharex=True, sharey=True)
+        subfig.suptitle(fname)
+        subfig.supxlabel("Classification error")
+        subfig.supylabel("Proportion of features selected")
+
+        for i, seed in enumerate(seeds):
+            hof = hofs[i][j]
+            plot = axs[i]
+
+            weighted_fitness = numpy.array([ind.fitness.wvalues for ind in hof]) * -1
+            ref = (1.1, 1.1)
+            total_hv = hv.hypervolume(weighted_fitness, ref)
+
+            points = list(map(lambda x: x.values, hof.keys))
+            plot.plot(*zip(*points))
+            plot.scatter(*zip(*points))
+            plot.set(title="Seed=" + str(seed) + ", hv=" + str(round(total_hv, 5)))
+
+    fig.show()
 
 
 def main(seed=None):
     random.seed(seed)
     np.random.seed(seed)
+
+    hofs = []
 
     for f in range(1, len(sys.argv)):
         # start from 1, skip 0th argument - filename
@@ -142,8 +157,11 @@ def main(seed=None):
         algorithms.eaMuPlusLambda(pop, toolbox, mu, mu, p_cross, p_mutate, epochs,
                                   stats, halloffame=hof)
 
-        plot_pareto_front(hof, file, seed)
         print("Control fitness: " + str(control_fitness()))
+
+        hofs.append(hof)
+
+    return hofs
 
 
 if __name__ == '__main__':
@@ -152,6 +170,11 @@ if __name__ == '__main__':
         print("e.g.:  python 03_nsga_fs.py data/vehicle/vehicle.dat data/musk/clean1.data")
         sys.exit(0)
 
-    for i in range(3):
+    hofs = []
+
+    seeds = range(3)
+    for i in seeds:
         print("======= Seed =", i, "=======")
-        main(i)
+        hofs.append(main(i))
+
+    plot_pareto_front(hofs, sys.argv[1:], seeds)

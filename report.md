@@ -8,7 +8,6 @@ date: 25 July 2022
 ---
 
 # Part 1
-> Describe the details of your designed GA (including the overall outline, representation, fitness function, crossover and mutation, selection, and parameters). You should also show the results (mean and standard deviation, and convergence curves), and make discussions and conclusions in your report.
 
 I designed this genetic algorithm from scratch. We start with a randomly initialised population, with **100** individuals represented by a list of Booleans. This representation encodes what an individual actually is, a series of Boolean choices whether to include an item in the knapsack, rather than say a string of ASCII integers. This representation also enables the use of Boolean operations, such as negation during mutation. 
 
@@ -49,7 +48,6 @@ Early populations begin in the negative fitness territory as the randomly genera
 
 
 # Part 2
-> Describe the details of your designed GA (including the overall outline, representation, fitness function, crossover and mutation, selection, and parameters). You should also show the results (mean and standard deviation of the performance and com- putational time), and make discussions and conclusions in your report.
 
 This genetic algorithm is largely the same as in Part 1, with parameters readjusted for the specific problem. We start with a randomly initialised population, with **50** individuals represented by a list of Booleans. This representation encodes what an individual actually is, a series of Boolean choices whether to include a feature in the set, rather than say a string of ASCII integers. This representation also enables the use of Boolean operations, such as negation during mutation. 
 
@@ -90,24 +88,20 @@ The average accuracy for wbcd was 93.5% for wrapper FS, and 94.2% for filter FS.
 
 # Part 3
 
-## vehicle
-Control fitness = (0.21158392434988182, 1.0)
+Once again, individuals are represented as a list of Booleans to semantically encode what an individual actually does, a series of Boolean choices to include a feature in or not, and allows an individual to directly subset features. The fitness function is in two parts, 
+
+Given this randomly initialised population, a generation process is repeated for **200** epochs. This is a smaller number than in Part 1 to reflect the smaller variability in this problem.
+* The first step sorts the population by fitness. Fitness is determined by two objectives: classification error based on a wrapper-based evaluation of the feature subset as in Part 2, and selection ratio based on how many features an individual selected. Both are minimised. 
+* The second step generates **100** offspring by either crossover (75% of the time), mutation (20% of the time) or reproduction (rest of the time, 5%).
+* The third step selects the best **100** individuals from the previous and this new generation. Selection is performed in two sub-steps, first sorting by the different non-dominated ranks, then assigning a crowding distance to each individual based on how many other individuals are close to it.
+
 ![img.png](out/part3/img.png)
-![img_1.png](out/part3/img_1.png)
-![img_2.png](out/part3/img_2.png)
-## musk
-Control fitness = (0.06302521008403361, 1.0)
-![img_3.png](out/part3/img_3.png)
-![img_4.png](out/part3/img_4.png)
-![img_5.png](out/part3/img_5.png)
 
-> Determine the proper individual representation and explain the reasons.
+The complete set of features for the vehicle dataset achieved a classification error rate of 21%. Most feature subsets on the three Pareto fronts achieved a lower classification error than that, improving by a maximum of 5 percentage points down. The complete set of features for the musk dataset achieved a classification error rate of 6%. All but one feature subset on three Pareto fronts achieved a lower classification error than that, improving by a maximum of 3 percentage points down.
 
-> Compare the error rates of the obtained solutions with that of using the entire feature set. Make discussions on the error rates and number of selected features of the obtained solutions, and draw you conclusions.
+This finding suggests that as the selection ratio increases, classification error begins to increase as adding more dimensions introduces more noise, making it harder to find a signal to aid classification. Removing features that don't provide useful information can improve accuracy, but only by 3-5%. 
 
-> Describe the details of your designed NSGA-II (including the overall outline, representation, fitness function, crossover and mutation, selection, and parameters). 
-> 
-> You should also show the results (the detailed error rates and number / ratio of selected features of each obtained solution, the hyper-volume and distribution figure for each solution set), and make discussions and conclusions in your report.
+Without using the selection ratio as an evolutionary objective, evolution may only stop at the top of the Pareto front with the lowest classification error. However, it may be preferable to continue removing features to decrease the model's complexity without re-increasing classification error, particularly for generalising to unseen data. To do this, one would select an individual before the elbow of the Pareto front starts.
 
 # Part 4
 The terminal set used in this problem consisted of a random float, or a random bool (True or False). This set captures all the possible types in the regression problem. The function set in this problem added all the functions sufficient to capture the regression problem:
