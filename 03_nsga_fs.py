@@ -3,18 +3,17 @@ Build a NSGA-II system to automatically evolve a feature subset that minimises e
 
 Inspired from https://github.com/DEAP/deap/blob/master/examples/ga/nsga2.py
 """
-import sys
-import time
 import random
-from array import array
+import sys
 
 import numpy
 import numpy as np
 import pandas as pd
-from sklearn.compose import ColumnTransformer
+from deap import base, creator, tools, algorithms
+from deap.tools._hypervolume import hv
+from matplotlib import pyplot as plt
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import LabelEncoder
-from deap import base, creator, tools, algorithms
 
 # HYPERPARAMETERS
 mu = 50
@@ -27,11 +26,11 @@ global X, y
 verbose = True
 
 
-def loadData(fname):
+def load_data(fname, sep):
     if verbose:
         print("===", fname, "===")
 
-    df = pd.read_csv(fname, header=None)
+    df = pd.read_csv(fname, header=None, sep=sep).dropna(axis=1)
     global X, y
     # Drop columns that aren't numeric
     X = df.iloc[:, 0:-1]\
@@ -42,12 +41,15 @@ def loadData(fname):
 
 def evaluate(individual):
     X_sub = X.loc[:, individual]
+    if sum(individual) == 0:
+        return 1, 1  # invalid solution
+
     clf = KNeighborsClassifier().fit(X_sub, y)
     y_pred = clf.predict(X_sub)
-    accuracy = (y == y_pred).sum() / len(y)
+    error = 1 - (y == y_pred).sum() / len(y)
     sel_ratio = sum(individual) / len(X.columns)
 
-    return accuracy, sel_ratio
+    return error, sel_ratio
 
 
 def one_point_crossover(i1, i2):
@@ -66,12 +68,13 @@ def mutate(individual):
     return individual,
 
 
-def createToolbox(ind_length):
-    # Minimise the two fitness metrics
-    creator.create("FitnessMin", base.Fitness, weights=(-1.0,-1.0))
-    # Individuals are represented as lists (of Booleans)
-    creator.create("Individual", list, fitness=creator.FitnessMin)
+# Minimise the two fitness metrics
+creator.create("FitnessMin", base.Fitness, weights=(-1.0, -1.0))
+# Individuals are represented as lists (of Booleans)
+creator.create("Individual", list, fitness=creator.FitnessMin)
 
+
+def createToolbox(ind_length):
     toolbox = base.Toolbox()
     # Generate attributes of the individual: pick a random candidate index to add to the set
     toolbox.register("attr_item", random.choice, [True, False])
@@ -89,13 +92,39 @@ def createToolbox(ind_length):
     return toolbox
 
 
+def control_fitness():
+    control_ind = [True for _ in X.columns]
+    return evaluate(control_ind)
+
+
+def plot_pareto_front(hof, fname, seed):
+    weighted_fitness = numpy.array([ind.fitness.wvalues for ind in hof]) * -1
+    ref = (1.1, 1.1)
+    total_hv = hv.hypervolume(weighted_fitness, ref)
+
+    points = list(map(lambda x: x.values, hof.keys))
+    plt.plot(*zip(*points))
+    plt.scatter(*zip(*points))
+    plt.xlabel("Classification error")
+    plt.ylabel("Proportion of features selected")
+    plt.suptitle("Pareto front, data = " + fname + ", seed = " + str(seed))
+    plt.title("Hypervolume = " + str(total_hv))
+    plt.show()
+
+
 def main(seed=None):
     random.seed(seed)
     np.random.seed(seed)
 
-    for f in range(1, len(sys.argv)):  # start from 1, skip 0th argument - filename
-        start = time.time()
-        loadData(sys.argv[f])
+    for f in range(1, len(sys.argv)):
+        # start from 1, skip 0th argument - filename
+        path = sys.argv[f]
+        file = path.split("/")[-2]
+        if path.endswith(".dat"):
+            sep = " "
+        else:
+            sep = ","
+        load_data(path, sep=sep)
         ind_length = len(X.columns)
 
         # Set up toolbox to generate population
@@ -113,10 +142,16 @@ def main(seed=None):
         algorithms.eaMuPlusLambda(pop, toolbox, mu, mu, p_cross, p_mutate, epochs,
                                   stats, halloffame=hof)
 
-        return pop, stats, hof
+        plot_pareto_front(hof, file, seed)
+        print("Control fitness: " + str(control_fitness()))
 
 
 if __name__ == '__main__':
-    for i in range(5):
+    if len(sys.argv) == 1:
+        print("usage: python 03_nsga_fs.py")
+        print("e.g.:  python 03_nsga_fs.py data/vehicle/vehicle.dat data/musk/clean1.data")
+        sys.exit(0)
+
+    for i in range(3):
         print("======= Seed =", i, "=======")
         main(i)

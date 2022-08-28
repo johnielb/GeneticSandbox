@@ -90,6 +90,24 @@ The average accuracy for wbcd was 93.5% for wrapper FS, and 94.2% for filter FS.
 
 # Part 3
 
+## vehicle
+Control fitness = (0.21158392434988182, 1.0)
+![img.png](out/part3/img.png)
+![img_1.png](out/part3/img_1.png)
+![img_2.png](out/part3/img_2.png)
+## musk
+Control fitness = (0.06302521008403361, 1.0)
+![img_3.png](out/part3/img_3.png)
+![img_4.png](out/part3/img_4.png)
+![img_5.png](out/part3/img_5.png)
+
+> Determine the proper individual representation and explain the reasons.
+
+> Compare the error rates of the obtained solutions with that of using the entire feature set. Make discussions on the error rates and number of selected features of the obtained solutions, and draw you conclusions.
+
+> Describe the details of your designed NSGA-II (including the overall outline, representation, fitness function, crossover and mutation, selection, and parameters). 
+> 
+> You should also show the results (the detailed error rates and number / ratio of selected features of each obtained solution, the hyper-volume and distribution figure for each solution set), and make discussions and conclusions in your report.
 
 # Part 4
 The terminal set used in this problem consisted of a random float, or a random bool (True or False). This set captures all the possible types in the regression problem. The function set in this problem added all the functions sufficient to capture the regression problem:
