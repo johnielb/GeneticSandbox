@@ -56,7 +56,6 @@ Given this randomly initialised population, a generation process is repeated for
 * The next generation is populated with **2** of the most fit individuals, before generating the rest of the children. This is 2% of the next generation, which promotes further diversity in the 98% which will possess different material, as we cross over with new children 100% of the time.
 * Until **100** children in the population are generated, select two parents randomly, weighted by their fitness (i.e. roulette wheel selection). Crossover happens **100%** of the time, where a random index in the individual is picked as the crossover point where genetic material is swapped between the parents from that point onwards. Mutation happens **25%** of the time, which introduces novel genetic material by flipping a bit in the individual randomly. This rate is higher than suggested to help the GA converge on the optimal value quicker.
 
-
 ## Results
 ### wbcd
 | Seed | Wrapper time (s) | Filter time (s) | Wrapper accuracy (%) | Filter accuracy (%) |
@@ -91,7 +90,7 @@ The average accuracy for wbcd was 93.5% for wrapper FS, and 94.2% for filter FS.
 Once again, individuals are represented as a list of Booleans to semantically encode what an individual actually does, a series of Boolean choices to include a feature in or not, and allows an individual to directly subset features. The fitness function is in two parts, 
 
 Given this randomly initialised population, a generation process is repeated for **200** epochs. This is a smaller number than in Part 1 to reflect the smaller variability in this problem.
-* The first step sorts the population by fitness. Fitness is determined by two objectives: classification error based on a wrapper-based evaluation of the feature subset as in Part 2, and selection ratio based on how many features an individual selected. Both are minimised. 
+* The first step sorts the population by fitness. Fitness is determined by two objectives: classification error based on a wrapper-based evaluation of the feature subset as in Part 2 using a KNeighborsClassifier, and selection ratio based on how many features an individual selected. Both are minimised. 
 * The second step generates **100** offspring by either crossover (75% of the time), mutation (20% of the time) or reproduction (rest of the time, 5%).
 * The third step selects the best **100** individuals from the previous and this new generation. Selection is performed in two sub-steps, first sorting by the different non-dominated ranks, then assigning a crowding distance to each individual based on how many other individuals are close to it.
 

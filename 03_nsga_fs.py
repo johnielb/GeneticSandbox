@@ -98,7 +98,7 @@ def control_fitness():
 
 
 def plot_pareto_front(hofs, fnames, seeds):
-    fig = plt.figure(figsize=(9, 6), constrained_layout=True)
+    fig = plt.figure(figsize=(15, 10), constrained_layout=True)
     fig.suptitle("Pareto fronts")
     subfigs = fig.subfigures(nrows=len(fnames))
 
@@ -120,6 +120,9 @@ def plot_pareto_front(hofs, fnames, seeds):
             points = list(map(lambda x: x.values, hof.keys))
             plot.plot(*zip(*points))
             plot.scatter(*zip(*points))
+            for point in points:
+                label = "(" + str(round(point[0], 4)) + ", " + str(round(point[1], 4)) + ")"
+                plot.text(point[0], point[1], label)
             plot.set(title="Seed=" + str(seed) + ", hv=" + str(round(total_hv, 5)))
 
     fig.show()
