@@ -134,3 +134,17 @@ The best individual is examinable at a high level. The top level node is an if e
 It is interesting that the best individual has the least nodes out of all of them. This result demonstrates that a more complex model does not lead to better results.
 
 # Part 5
+$\phi$_1 and $\phi$_2 are set to the same value empirically found by Eberhart and Shi, $\phi = 1.49618$. Likewise, w was set to 0.7298 from the same source. The population size is set to produce 1000 individuals each generation.
+
+The fitness function follows the two given objective functions, the Rosenbrock and Griewank functions. Particles are encoded as a position vector (list of floats) to denote where they are in the search space, and stores its previous velocity to enable acceleration/inertia. The topology type is fully connected, as only one global best is stored and shared between all particles. One experiment stops if a good enough fitness is reached (20) or a maximum number of generations has been reached.
+
+## Griewank function
+| D | Mean | SD |
+| --- | --- | --- |
+| 20 | 1.5992 | 0.0861 |
+| 50 | 3.2374 | 0.1904 |
+
+## Rosenbrock function
+| D | Mean | SD |
+| --- | --- | --- |
+| 20 | 2132.82 | 10315.49 |

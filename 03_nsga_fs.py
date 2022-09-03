@@ -1,12 +1,12 @@
 """
-Build a NSGA-II system to automatically evolve a feature subset that minimises error and the number of features selected.
+Build a NSGA-II system to automatically evolve a feature subset that minimises
+error and the number of features selected.
 
 Inspired from https://github.com/DEAP/deap/blob/master/examples/ga/nsga2.py
 """
 import random
 import sys
 
-import numpy
 import numpy as np
 import pandas as pd
 from deap import base, creator, tools, algorithms
@@ -74,7 +74,7 @@ creator.create("FitnessMin", base.Fitness, weights=(-1.0, -1.0))
 creator.create("Individual", list, fitness=creator.FitnessMin)
 
 
-def createToolbox(ind_length):
+def create_toolbox(ind_length):
     toolbox = base.Toolbox()
     # Generate attributes of the individual: pick a random candidate index to add to the set
     toolbox.register("attr_item", random.choice, [True, False])
@@ -113,7 +113,7 @@ def plot_pareto_front(hofs, fnames, seeds):
             hof = hofs[i][j]
             plot = axs[i]
 
-            weighted_fitness = numpy.array([ind.fitness.wvalues for ind in hof]) * -1
+            weighted_fitness = np.array([ind.fitness.wvalues for ind in hof]) * -1
             ref = (1.1, 1.1)
             total_hv = hv.hypervolume(weighted_fitness, ref)
 
@@ -146,14 +146,14 @@ def main(seed=None):
         ind_length = len(X.columns)
 
         # Set up toolbox to generate population
-        toolbox = createToolbox(ind_length)
+        toolbox = create_toolbox(ind_length)
 
         pop = toolbox.population(n=mu)
 
         stats = tools.Statistics(lambda ind: ind.fitness.values)
-        stats.register("min", numpy.min)
-        stats.register("avg", numpy.mean)
-        stats.register("std", numpy.std)
+        stats.register("min", np.min)
+        stats.register("avg", np.mean)
+        stats.register("std", np.std)
 
         hof = tools.ParetoFront()
 
