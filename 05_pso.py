@@ -3,12 +3,11 @@ Optimise a particle swarm based on two objective functions, Rosenbrock's functio
 
 Inspired from https://github.com/DEAP/deap/blob/master/examples/pso/basic.py
 """
-import math
-import random
 import operator
+import random
 
 import numpy as np
-from deap import base, creator, tools, benchmarks
+from deap import base, creator, tools
 
 verbose = False
 
@@ -125,7 +124,7 @@ def repeat_experiment(toolbox, repeats):
         stats.register("min", np.min)
 
         best = evolve_swarm(pop, stats, toolbox)
-        print("Repeat %2d: %0.2f" % (r, best.fitness.values[0]))
+        print("Repeat %2d: %0.4f" % (r, best.fitness.values[0]))
         best_fitnesses.append(best.fitness.values[0])
 
     print("Mean best fitness: " + str(np.mean(best_fitnesses)))
